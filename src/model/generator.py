@@ -91,8 +91,8 @@ class Generator(nn.Module):
         self.output_conv = weight_norm(nn.Conv1d(upsample_channels[-1], 1, kernel_size=7, 
                                                  padding='same'))
 
-    def forward(self, x):
-        x = self.input_conv(x)
+    def forward(self, spectrogram, **batch):
+        x = self.input_conv(spectrogram)
         
         for upsample_block, mrf_block in zip(self.upsample_blocks, self.mrf_blocks):
             x = F.leaky_relu(x, 0.1)
@@ -102,7 +102,9 @@ class Generator(nn.Module):
         x = F.leaky_relu(x, 0.1)
         x = self.output_conv(x)
         
-        return torch.tanh(x)
+        return {
+            "audio_gen": torch.tanh(x)
+        }
 
     def remove_weight_norm(self):
         for block in self.upsample_blocks:
