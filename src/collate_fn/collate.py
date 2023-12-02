@@ -26,7 +26,7 @@ def get_collate():
 
         return {
             'spectrogram': spectrograms,
-            'audio': audio
+            'audio': audio.unsqueeze(1)
         }
 
     return collate_fn
