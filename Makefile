@@ -1,7 +1,7 @@
-NAME?=tts
+NAME?=nv
 GPUS?=0
-SAVE_DIR?=/hdd/aidar/tts_save_dir
-DATA_DIR?=/hdd/aidar/tts_data_dir
+SAVE_DIR?=/hdd/aidar/nv_save_dir
+DATA_DIR?=/hdd/aidar/nv_data_dir
 NOTEBOOK_DIR?=/hdd/aidar/notebooks/tts
 USER?=$(shell whoami)
 UID?=$(shell id -u)
