@@ -6,9 +6,8 @@ import numpy as np
 import torch
 import torchaudio
 from torch import Tensor
-from torch.utils.data import Dataset
+from torch.utils.data import dataset
 
-from src.base.base_text_encoder import BaseTextEncoder
 from src.utils.parse_config import ConfigParser
 
 logger = logging.getLogger(__name__)
@@ -40,12 +39,9 @@ class BaseDataset(Dataset):
         data_dict = self._index[ind]
         audio_path = data_dict["path"]
         audio_wave = self.load_audio(audio_path)
-        audio_wave, audio_spec = self.process_wave(audio_wave)
+        audio_wave = self.process_wave(audio_wave)
         return {
             "audio": audio_wave,
-            "spectrogram": audio_spec,
-            "spectrogram_len": audio_spec.shape[-1],
-            "duration": audio_wave.size(1) / self.config_parser["preprocessing"]["sr"],
         }
 
     @staticmethod
@@ -67,16 +63,8 @@ class BaseDataset(Dataset):
         with torch.no_grad():
             if self.wave_augs is not None:
                 audio_tensor_wave = self.wave_augs(audio_tensor_wave)
-            wave2spec = self.config_parser.init_obj(
-                self.config_parser["preprocessing"]["spectrogram"],
-                torchaudio.transforms,
-            )
-            audio_tensor_spec = wave2spec(audio_tensor_wave)
-            if self.spec_augs is not None:
-                audio_tensor_spec = self.spec_augs(audio_tensor_spec)
-            if self.log_spec:
-                audio_tensor_spec = torch.log(audio_tensor_spec + 1e-5)
-            return audio_tensor_wave, audio_tensor_spec
+            
+            return audio_tensor_wave
 
     @staticmethod
     def _filter_records_from_dataset(
@@ -88,7 +76,7 @@ class BaseDataset(Dataset):
             _total = exceeds_audio_length.sum()
             logger.info(
                 f"{_total} ({_total / initial_size:.1%}) records are longer then "
-                f"{max_audio_length} seconds. Excluding them."
+                f"{max_audio_length} samples. Excluding them."
             )
         else:
             exceeds_audio_length = False
