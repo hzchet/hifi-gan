@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torchaudio
 from torch import Tensor
-from torch.utils.data import dataset
+from torch.utils.data import Dataset
 
 from src.utils.parse_config import ConfigParser
 
@@ -19,20 +19,18 @@ class BaseDataset(Dataset):
             index,
             config_parser: ConfigParser,
             wave_augs=None,
-            spec_augs=None,
             limit=None,
             max_audio_length=None,
     ):
         self.config_parser = config_parser
         self.wave_augs = wave_augs
-        self.spec_augs = spec_augs
-        self.log_spec = config_parser["preprocessing"]["log_spec"]
 
         self._assert_index_is_valid(index)
-        index = self._filter_records_from_dataset(index, max_audio_length, max_text_length, limit)
+        index = self._filter_records(index, limit)
         # it's a good idea to sort index by audio length
         # It would be easier to write length-based batch samplers later
         index = self._sort_index(index)
+        self.max_audio_length = max_audio_length
         self._index: List[dict] = index
 
     def __getitem__(self, ind):
@@ -46,7 +44,7 @@ class BaseDataset(Dataset):
 
     @staticmethod
     def _sort_index(index):
-        return sorted(index, key=lambda x: x["audio_len"])
+        return sorted(index, key=lambda x: x["audio_samples"])
 
     def __len__(self):
         return len(self._index)
@@ -64,34 +62,15 @@ class BaseDataset(Dataset):
             if self.wave_augs is not None:
                 audio_tensor_wave = self.wave_augs(audio_tensor_wave)
             
+            if audio_tensor_wave.shape[1] > self.max_audio_length:
+                audio_tensor_wave = audio_tensor_wave[:, :self.max_audio_length]
+            
             return audio_tensor_wave
 
     @staticmethod
-    def _filter_records_from_dataset(
-            index: list, max_audio_length, max_text_length, limit
+    def _filter_records(
+            index: list, limit: int
     ) -> list:
-        initial_size = len(index)
-        if max_audio_length is not None:
-            exceeds_audio_length = np.array([el["audio_samples"] for el in index]) >= max_audio_length
-            _total = exceeds_audio_length.sum()
-            logger.info(
-                f"{_total} ({_total / initial_size:.1%}) records are longer then "
-                f"{max_audio_length} samples. Excluding them."
-            )
-        else:
-            exceeds_audio_length = False
-
-        initial_size = len(index)
-
-        records_to_filter = exceeds_audio_length
-
-        if records_to_filter is not False and records_to_filter.any():
-            _total = records_to_filter.sum()
-            index = [el for el, exclude in zip(index, records_to_filter) if not exclude]
-            logger.info(
-                f"Filtered {_total}({_total / initial_size:.1%}) records  from dataset"
-            )
-
         if limit is not None:
             random.seed(42)  # best seed for deep learning
             random.shuffle(index)
@@ -101,8 +80,8 @@ class BaseDataset(Dataset):
     @staticmethod
     def _assert_index_is_valid(index):
         for entry in index:
-            assert "audio_len" in entry, (
-                "Each dataset item should include field 'audio_len'"
+            assert "audio_samples" in entry, (
+                "Each dataset item should include field 'audio_samples'"
                 " - duration of audio (in samples)."
             )
             assert "path" in entry, (
