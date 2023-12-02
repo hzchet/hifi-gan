@@ -9,7 +9,7 @@ def pad_sequence(batch):
     # Make all tensor in a batch the same length by padding with zeros
     batch = [item.T for item in batch]
     batch = nn.utils.rnn.pad_sequence(batch, batch_first=True, padding_value=0.)
-    return batch.permute(0, 2, 1)
+    return batch.permute(0, 2, 1).squeeze(1)
 
 
 def get_collate():
