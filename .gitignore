@@ -7,7 +7,7 @@ __pycache__/
 *.sogit 
 
 wandb/
-
+out_dir/
 # Distribution / packaging
 .Python
 build/
