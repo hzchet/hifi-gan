@@ -19,18 +19,18 @@ class MPD(nn.Module):
             SubMPD(p, channels, kernel_sizes, strides, paddings) for p in periods
         ])
     
-    def forward_impl(self, x):
+    def _forward_impl(self, x):
         outputs, feature_maps = [], []
         for discriminator in self.net:
             output, feature_map = discriminator(x)
             outputs.append(output)
-            feature_maps.append(feature_map)
+            feature_maps.extend(feature_map)
 
         return outputs, feature_maps
     
     def forward(self, audio, audio_gen, **batch):
-        outputs, feature_maps = self.forward_impl(audio)
-        outputs_gen, feature_maps_gen = self.forward_impl(audio_gen)
+        outputs, feature_maps = self._forward_impl(audio)
+        outputs_gen, feature_maps_gen = self._forward_impl(audio_gen)
         
         return {
             "mpd_logits": outputs,
@@ -56,18 +56,18 @@ class MSD(nn.Module):
             SubMSD(channels, kernel_sizes, strides, groups_list, paddings, use_spectral_norm=False),
         ])
 
-    def forward_impl(self, x):
+    def _forward_impl(self, x):
         outputs, feature_maps = [], []
         for discriminator in self.net:
             output, feature_map = discriminator(x)
             outputs.append(output)
-            feature_maps.append(feature_map)
+            feature_maps.extend(feature_map)
 
         return outputs, feature_maps
     
     def forward(self, audio, audio_gen, **batch):
-        outputs, feature_maps = self.forward_impl(audio)
-        outputs_gen, feature_maps_gen = self.forward_impl(audio_gen)
+        outputs, feature_maps = self._forward_impl(audio)
+        outputs_gen, feature_maps_gen = self._forward_impl(audio_gen)
         
         return {
             "msd_logits": outputs,
