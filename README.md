@@ -4,7 +4,7 @@ Implementation of the [HiFi-GAN](https://arxiv.org/abs/2010.05646) neural vocode
 # Reproducing results
 To reproduce trainig of the final model, follow the steps:
 
-1. Specify the `GPUS` (gpu indices that will be used during trained), `SAVE_DIR` (directory where all the logs & checkpoints will be stored), `DATA_DIR` (directory that will store the training data), `NOTEBOOK_DIR` (directory that contains your notebooks, for debugging purposes) in the `Makefile`. Set up `WANDB_API_KEY` variable in the `Dockerfile` to log the training process.
+1. Specify the `GPUS` (gpu indices that will be used during training), `SAVE_DIR` (directory where all the logs & checkpoints will be stored), `DATA_DIR` (directory that will store the training data), `NOTEBOOK_DIR` (directory that contains your notebooks, for debugging purposes) in the `Makefile`. Set up `WANDB_API_KEY` variable in the `Dockerfile` to log the training process.
 
 2. Build and run the `Docker` container
 ```bash
