@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import weight_norm, remove_weight_norm
 
+from src.utils import init_weights
+
 
 class ResBlock(nn.Module):
     def __init__(
@@ -17,6 +19,7 @@ class ResBlock(nn.Module):
         self.conv_blocks = nn.ModuleList([weight_norm(
             nn.Conv1d(channels, channels, kernel_size, dilation=d, padding='same')) for d in dilations
         ])
+        self.conv_blocks.apply(init_weights)
         
     def forward(self, x):
         for conv_block in self.conv_blocks:
@@ -74,6 +77,7 @@ class Generator(nn.Module):
         super().__init__()
         self.input_conv = weight_norm(nn.Conv1d(in_channels, upsample_channels[0], kernel_size=7,
                                                 padding='same'))
+        self.input_conv.apply(init_weights)
         
         upsample_blocks, mrf_blocks = [], []
         for in_channels, out_channels, kernel_size, stride in zip(
@@ -86,10 +90,12 @@ class Generator(nn.Module):
             mrf_blocks.append(MRF(out_channels, mrf_kernel_sizes, mrf_dilation_list))
             
         self.upsample_blocks = nn.ModuleList(upsample_blocks)
+        self.upsample_blocks.apply(init_weights)
         self.mrf_blocks = nn.ModuleList(mrf_blocks)
         
         self.output_conv = weight_norm(nn.Conv1d(upsample_channels[-1], 1, kernel_size=7, 
                                                  padding='same'))
+        self.output_conv.apply(init_weights)
 
     def forward(self, spectrogram, **batch):
         x = self.input_conv(spectrogram)
