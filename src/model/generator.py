@@ -113,8 +113,6 @@ class Generator(nn.Module):
         }
 
     def remove_weight_norm(self):
-        for block in self.upsample_blocks:
-            remove_weight_norm(block)
         for block in self.mrf_blocks:
             block.remove_weight_norm()
 
