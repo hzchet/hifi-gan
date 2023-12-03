@@ -62,8 +62,10 @@ class BaseDataset(Dataset):
             if self.wave_augs is not None:
                 audio_tensor_wave = self.wave_augs(audio_tensor_wave)
             
-            if audio_tensor_wave.shape[1] > self.max_audio_length:
-                audio_tensor_wave = audio_tensor_wave[:, :self.max_audio_length]
+            if self.max_audio_length is not None and audio_tensor_wave.shape[1] > self.max_audio_length:
+                T = audio_tensor_wave.shape[1]
+                start = np.random.randint(0, T - self.max_audio_length + 1)
+                audio_tensor_wave = audio_tensor_wave[:, start:start + self.max_audio_length]
             
             return audio_tensor_wave
 
