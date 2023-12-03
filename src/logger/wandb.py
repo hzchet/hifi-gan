@@ -55,6 +55,13 @@ class WanDBWriter:
                scalars.items()}
         }, step=self.step)
 
+    def create_image_entry(self, image):
+        return self.wandb.Image(image)
+    
+    def create_audio_entry(self, audio, sample_rate=None):
+        audio = audio.detach().cpu().numpy().T
+        return self.wandb.Audio(audio, sample_rate=sample_rate)
+    
     def add_image(self, scalar_name, image):
         self.wandb.log({
             self._scalar_name(scalar_name): self.wandb.Image(image)
